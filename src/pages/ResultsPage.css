@@ -1,0 +1,293 @@
+.results-page {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: 100vh;
+  padding: 24px;
+  box-sizing: border-box;
+}
+
+.results-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  flex-shrink: 0;
+  padding-bottom: 20px;
+  width: 100%;
+  max-width: 480px;
+}
+
+.result-emoji {
+  font-size: 56px;
+  filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.3));
+}
+
+.result-title {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 32px;
+  font-weight: 900;
+  color: var(--text-primary);
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  text-shadow: 0 0 30px rgba(29, 185, 84, 0.4);
+}
+
+.score-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--surface);
+  padding: 16px 28px;
+  border-radius: 20px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.2);
+}
+
+.score-circle-mini {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.final-score {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 42px;
+  font-weight: 900;
+  color: var(--primary);
+  text-shadow: 0 0 20px rgba(29, 185, 84, 0.6);
+}
+
+.score-separator {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 28px;
+  color: var(--text-secondary);
+}
+
+.final-total {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 28px;
+  color: var(--text-secondary);
+}
+
+.score-percentage {
+  font-family: 'Inter', sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-secondary);
+  padding: 6px 14px;
+  background: var(--background);
+  border-radius: 20px;
+}
+
+.artist-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.artist-image {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--primary);
+}
+
+.artist-name {
+  font-family: 'Inter', sans-serif;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.recap-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  width: 100%;
+  max-width: 480px;
+  margin-top: 8px;
+}
+
+.recap-title {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 3px;
+  margin: 0 0 12px 0;
+  flex-shrink: 0;
+}
+
+.recap-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  overflow-y: auto;
+  flex: 1;
+  padding-right: 4px;
+}
+
+.recap-list::-webkit-scrollbar {
+  width: 4px;
+}
+
+.recap-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.recap-list::-webkit-scrollbar-thumb {
+  background: var(--text-secondary);
+  border-radius: 2px;
+}
+
+.recap-item {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  grid-template-rows: auto auto;
+  gap: 0 14px;
+  padding: 14px 16px;
+  background: var(--surface);
+  border-radius: 14px;
+  border-left: 4px solid;
+  transition: transform 0.15s ease;
+}
+
+.recap-item:hover {
+  transform: translateX(4px);
+}
+
+.recap-item.correct {
+  border-left-color: var(--primary);
+}
+
+.recap-item.wrong {
+  border-left-color: #e74c3c;
+}
+
+.recap-round-badge {
+  grid-row: 1 / 3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background: var(--background);
+  border-radius: 50%;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-secondary);
+}
+
+.recap-track-info {
+  grid-column: 2;
+  min-width: 0;
+}
+
+.recap-song-name {
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: 2px;
+}
+
+.recap-artist-name {
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.recap-answer {
+  grid-column: 2;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.recap-choice {
+  font-family: 'Inter', sans-serif;
+  font-size: 11px;
+  font-weight: 500;
+  padding: 3px 8px;
+  border-radius: 6px;
+}
+
+.recap-choice.correct {
+  color: var(--secondary);
+  background: var(--primary);
+}
+
+.recap-choice.wrong {
+  color: var(--secondary);
+  background: #e74c3c;
+  text-decoration: line-through;
+}
+
+.recap-correct-label {
+  font-family: 'Inter', sans-serif;
+  font-size: 11px;
+  color: var(--primary);
+}
+
+.recap-timing {
+  grid-row: 1 / 3;
+  grid-column: 3;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 2px;
+}
+
+.recap-time-total {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.recap-time-listen {
+  font-family: 'Inter', sans-serif;
+  font-size: 10px;
+  color: var(--text-secondary);
+}
+
+.results-actions {
+  flex-shrink: 0;
+  display: flex;
+  justify-content: center;
+  padding-top: 20px;
+}
+
+.primary-button {
+  padding: 14px 48px;
+  background: var(--primary);
+  color: var(--secondary);
+  font-family: 'Orbitron', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  border: none;
+  border-radius: 30px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 20px rgba(29, 185, 84, 0.4);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.primary-button:hover {
+  transform: scale(1.05);
+  box-shadow: 0 6px 30px rgba(29, 185, 84, 0.6);
+}

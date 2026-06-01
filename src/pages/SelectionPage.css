@@ -1,0 +1,88 @@
+.selection-page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  background: var(--background);
+  position: relative;
+}
+
+.settings-button {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: var(--surface);
+  border: 2px solid var(--text-secondary);
+  color: var(--text-secondary);
+  font-size: 24px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+}
+
+.settings-button:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+  box-shadow: 0 0 20px rgba(29, 185, 84, 0.3);
+}
+
+.selection-title {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 48px;
+  color: var(--primary);
+  margin: 0 0 8px 0;
+  text-shadow: 0 0 30px rgba(29, 185, 84, 0.5);
+}
+
+.selection-subtitle {
+  font-family: 'Inter', sans-serif;
+  font-size: 20px;
+  color: var(--text-secondary);
+  margin: 0 0 48px 0;
+}
+
+.selection-cards {
+  display: flex;
+  gap: 24px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.selection-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 180px;
+  height: 180px;
+  background: var(--surface);
+  border: 2px solid transparent;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.selection-card:hover {
+  transform: scale(1.05);
+  border-color: var(--primary);
+  box-shadow: 0 0 30px rgba(29, 185, 84, 0.4);
+}
+
+.card-icon {
+  font-size: 56px;
+  margin-bottom: 12px;
+}
+
+.card-label {
+  font-family: 'Inter', sans-serif;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
