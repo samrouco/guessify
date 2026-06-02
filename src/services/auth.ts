@@ -1,6 +1,10 @@
 const CLIENT_ID = import.meta.env.VITE_SPOTIFY_CLIENT_ID || '';
-const REDIRECT_URI = import.meta.env.VITE_REDIRECT_URI || window.location.origin;
 const SCOPES = ['streaming', 'user-read-email', 'user-read-private', 'user-library-modify'];
+import { sha256 } from 'js-sha256';
+
+const REDIRECT_URI = import.meta.env.VITE_REDIRECT_URI || window.location.origin;
+
+const getRedirectUri = () => REDIRECT_URI;
 
 const generateCodeVerifier = () => {
   const array = new Uint8Array(32);
@@ -12,9 +16,9 @@ const generateCodeVerifier = () => {
 };
 
 const generateCodeChallenge = async (verifier: string) => {
-  const encoder = new TextEncoder();
-  const data = encoder.encode(verifier);
-  const digest = await crypto.subtle.digest('SHA-256', data);
+  const hash = sha256.create();
+  hash.update(verifier);
+  const digest = hash.digest();
   return btoa(String.fromCharCode(...new Uint8Array(digest)))
     .replace(/\+/g, '-')
     .replace(/\//g, '_')
@@ -26,10 +30,13 @@ export const getAuthUrl = async () => {
   const challenge = await generateCodeChallenge(verifier);
   sessionStorage.setItem('pkce_verifier', verifier);
 
+  const redirectUri = getRedirectUri();
+  console.log('Auth redirect URI:', redirectUri);
+
   const params = new URLSearchParams({
     client_id: CLIENT_ID,
     response_type: 'code',
-    redirect_uri: REDIRECT_URI,
+    redirect_uri: redirectUri,
     scope: SCOPES.join(' '),
     show_dialog: 'true',
     code_challenge_method: 'S256',
@@ -51,6 +58,9 @@ export const exchangeCodeForToken = async (code: string) => {
   const verifier = sessionStorage.getItem('pkce_verifier');
   if (!verifier) throw new Error('No PKCE verifier found');
 
+  const redirectUri = getRedirectUri();
+  console.log('Token exchange redirect URI:', redirectUri);
+
   const response = await fetch('https://accounts.spotify.com/api/token', {
     method: 'POST',
     headers: {
@@ -60,7 +70,7 @@ export const exchangeCodeForToken = async (code: string) => {
       client_id: CLIENT_ID,
       grant_type: 'authorization_code',
       code,
-      redirect_uri: REDIRECT_URI,
+      redirect_uri: redirectUri,
       code_verifier: verifier,
     }),
   });
@@ -88,4 +98,5 @@ export const logout = () => {
   localStorage.removeItem('spotify_token');
   localStorage.removeItem('spotify_token_expires');
   localStorage.removeItem('spotify_refresh_token');
+  window.location.href = window.location.origin;
 };

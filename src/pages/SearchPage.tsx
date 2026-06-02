@@ -7,9 +7,10 @@ import './SearchPage.css';
 interface SearchPageProps {
   onSelectItem: (item: SearchResult) => void;
   searchType: SearchType;
+  mode?: 'guess' | 'tierlist';
 }
 
-export const SearchPage: React.FC<SearchPageProps> = ({ onSelectItem, searchType }) => {
+export const SearchPage: React.FC<SearchPageProps> = ({ onSelectItem, searchType, mode: _mode = 'guess' }) => {
   const [authChecked, setAuthChecked] = useState(false);
   const [isAuth, setIsAuth] = useState(false);
 
