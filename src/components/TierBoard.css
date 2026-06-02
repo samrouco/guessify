@@ -8,6 +8,7 @@
   border: 2px solid #333;
   width: 100%;
   max-width: 400px;
+  overflow-x: hidden;
 }
 
 .tier-slot {
@@ -20,6 +21,7 @@
   border: 2px dashed #444;
   min-height: 50px;
   transition: all 0.2s ease;
+  overflow: hidden;
 }
 
 .tier-slot.drag-over {
@@ -40,6 +42,7 @@
   color: #1DB954;
   min-width: 24px;
   text-align: center;
+  flex-shrink: 0;
 }
 
 .tier-rank-label {
@@ -54,7 +57,7 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  max-width: 280px;
+  min-width: 0;
   overflow: hidden;
 }
 
@@ -90,4 +93,21 @@
   color: #888;
   font-size: 0.8rem;
   margin-left: auto;
+}
+
+@media (max-width: 768px) {
+  .tier-board {
+    max-width: 100%;
+    padding: 10px;
+    gap: 6px;
+  }
+
+  .tier-slot {
+    padding: 8px 10px;
+    min-height: 44px;
+  }
+
+  .tier-rank-label {
+    display: none;
+  }
 }

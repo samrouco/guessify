@@ -291,3 +291,56 @@
   transform: scale(1.05);
   box-shadow: 0 6px 30px rgba(29, 185, 84, 0.6);
 }
+
+@media (max-width: 480px) {
+  .result-title {
+    font-size: 24px;
+  }
+
+  .result-emoji {
+    font-size: 48px;
+  }
+
+  .score-circle-mini {
+    gap: 4px;
+  }
+
+  .final-score {
+    font-size: 36px;
+  }
+
+  .final-total {
+    font-size: 24px;
+  }
+
+  .score-separator {
+    font-size: 24px;
+  }
+
+  .recap-item {
+    grid-template-columns: auto 1fr;
+    grid-template-rows: auto auto auto;
+    gap: 4px 10px;
+  }
+
+  .recap-round-badge {
+    grid-row: 1 / 2;
+  }
+
+  .recap-track-info {
+    grid-column: 2;
+  }
+
+  .recap-answer {
+    grid-column: 1 / 3;
+    grid-row: 2;
+  }
+
+  .recap-timing {
+    grid-column: 1 / 3;
+    grid-row: 3;
+    flex-direction: row;
+    justify-content: flex-start;
+    gap: 12px;
+  }
+}

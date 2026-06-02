@@ -1,9 +1,13 @@
 import React, { useEffect, useState, useCallback, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { DndContext, DragEndEvent, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { useTierList } from '../context/TierListContext';
 import { TierBoard, DraggableSong } from '../components';
 import { playTrack, getPlayer, getDeviceId, pauseTrack as pauseTrackPlayer, resumeTrack as resumeTrackPlayer, setVolume, seekTrack } from '../services/spotifyPlayer';
+import { setTrackLiked } from '../services/spotifyApi';
 import { Artist, Playlist, Album } from '../types';
 import './TierListGamePage.css';
+import { ROUTES } from '../routes';
 
 interface TierListGamePageProps {
   onFinish: () => void;
@@ -11,6 +15,7 @@ interface TierListGamePageProps {
 }
 
 export const TierListGamePage: React.FC<TierListGamePageProps> = ({ onFinish, onBackToSelection }) => {
+  const navigate = useNavigate();
   const { state, currentTrack, rankedCount, canReRank, setRanking, unrank, lockCurrentRanking, nextTrack, setPlayback } = useTierList();
   const [isPaused, setIsPaused] = useState(false);
   const [playerReady, setPlayerReady] = useState(false);
@@ -18,8 +23,15 @@ export const TierListGamePage: React.FC<TierListGamePageProps> = ({ onFinish, on
   const [volume, setVolumeState] = useState(0.5);
   const [currentPosition, setCurrentPosition] = useState(0);
   const [duration, setDuration] = useState(0);
+  const [isLiked, setIsLiked] = useState(false);
   const positionIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const hasPlayedRef = useRef(false);
+
+  useEffect(() => {
+    if (!state.selectedItem) {
+      navigate(ROUTES.TIERLIST_SELECTION);
+    }
+  }, [state.selectedItem, navigate]);
 
   useEffect(() => {
     const checkPlayer = () => {
@@ -38,6 +50,7 @@ export const TierListGamePage: React.FC<TierListGamePageProps> = ({ onFinish, on
   useEffect(() => {
     hasPlayedRef.current = false;
     setIsPaused(false);
+    setIsLiked(false);
     setCurrentPosition(0);
     if (positionIntervalRef.current) {
       clearInterval(positionIntervalRef.current);
@@ -130,6 +143,14 @@ export const TierListGamePage: React.FC<TierListGamePageProps> = ({ onFinish, on
     await seekTrack(newPosition);
   }, []);
 
+  const handleLike = useCallback(async () => {
+    if (!currentTrack) return;
+    const success = await setTrackLiked(currentTrack.id);
+    if (success) {
+      setIsLiked(true);
+    }
+  }, [currentTrack]);
+
   const handleNextTrack = useCallback(() => {
     lockCurrentRanking();
     nextTrack();
@@ -191,98 +212,125 @@ export const TierListGamePage: React.FC<TierListGamePageProps> = ({ onFinish, on
 
   if (!currentTrack) return null;
 
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    })
+  );
+
+  const handleDragEnd = useCallback((event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over) return;
+
+    const overId = over.id as string;
+    if (!overId.startsWith('slot-')) return;
+
+    const slot = parseInt(overId.replace('slot-', ''), 10);
+    if (isNaN(slot)) return;
+
+    const trackId = active.id as string;
+    if (trackId === 'no-track') return;
+
+    handleRank(trackId, slot);
+  }, [handleRank]);
+
   return (
-    <div className="tierlist-game-page">
-      <div className="game-header">
-        <button className="back-button" onClick={handleBackToSelection} title="Back to selection">
-          ←
-        </button>
-        <img src={getItemImage()} alt={getItemName()} className="artist-avatar" />
-        <h2 className="artist-title">{getItemName()}</h2>
-        <div className="tierlist-progress">
-          <span className="progress-text">{rankedCount}/5</span>
-        </div>
-      </div>
-
-      <div className="main-content">
-        <div className="tier-section">
-          <TierBoard
-            rankings={state.rankings}
-            lockedRankings={state.lockedRankings}
-            tracks={state.tracks}
-            currentTrackId={currentTrack.id}
-            canReRank={canReRank}
-            onRank={handleRank}
-            onUnrank={handleUnrank}
-          />
-        </div>
-
-        <div className="controls-section">
-          <div className="now-playing">
-            <button className="pause-button" onClick={togglePause} disabled={!playerReady}>
-              {isPaused ? '▶' : '⏸'}
-            </button>
-            <span className="listening-text">{isPaused ? 'Paused' : 'Now Playing'}</span>
-            <div className="seek-row">
-              <span className="time-display">{formatTime(currentPosition)}</span>
-              <input
-                type="range"
-                min="0"
-                max={duration || 100}
-                value={currentPosition}
-                onChange={handleSeek}
-                className="seek-slider"
-                disabled={!playerReady}
-              />
-              <span className="time-display">{formatTime(duration)}</span>
-            </div>
-            <div className="volume-row">
-              <span className="volume-icon">🔊</span>
-              <input
-                type="range"
-                min="0"
-                max="1"
-                step="0.01"
-                value={volume}
-                onChange={handleVolumeChange}
-                className="volume-slider"
-                title="Volume"
-                disabled={!playerReady}
-              />
-            </div>
-          </div>
-
-          <div className="tierlist-song-name">
-            <span className="current-track-name">{currentTrack.name}</span>
-            <span className="current-track-artist">
-              {currentTrack.artists.map((a) => a.name).join(', ')}
-            </span>
-          </div>
-
-          <div className="draggable-area">
-            <DraggableSong
-              track={currentTrack}
-              isPlaying={!isPaused}
-              canDrag={canReRank}
-              isRanked={currentTrackRanked}
-            />
-            {!currentTrackRanked && (
-              <p className="drag-hint">Drag to rank</p>
-            )}
-            {currentTrackRanked && !isCurrentTrackLocked && (
-              <p className="drag-hint">Click slot to unrank</p>
-            )}
-          </div>
-
-          <button
-            className="next-track-button"
-            onClick={handleNextTrack}
-            disabled={state.currentTrackIndex >= state.tracks.length - 1 ? !allRanked : !currentTrackRanked}
-          >
-            {state.currentTrackIndex >= state.tracks.length - 1 ? (allRanked ? 'See Results' : 'Rank All') : 'Next Song'}
+    <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
+      <div className="tierlist-game-page">
+        <div className="game-header">
+          <button className="back-button" onClick={handleBackToSelection} title="Back to selection">
+            ←
           </button>
+          <img src={getItemImage()} alt={getItemName()} className="artist-avatar" />
+          <h2 className="artist-title">{getItemName()}</h2>
+          <div className="tierlist-progress">
+            <span className="progress-text">{rankedCount}/5</span>
+          </div>
+        </div>
+
+        <div className="main-content">
+          <div className="tier-section">
+            <TierBoard
+              rankings={state.rankings}
+              lockedRankings={state.lockedRankings}
+              tracks={state.tracks}
+              currentTrackId={currentTrack.id}
+              canReRank={canReRank}
+              onRank={handleRank}
+              onUnrank={handleUnrank}
+            />
+          </div>
+
+          <div className="controls-section">
+            <div className="now-playing">
+              <button className="pause-button" onClick={togglePause} disabled={!playerReady}>
+                {isPaused ? '▶' : '⏸'}
+              </button>
+              <button
+                className={`like-button ${isLiked ? 'liked' : ''}`}
+                onClick={handleLike}
+                disabled={!playerReady || isLiked}
+                title="Add to Liked Songs"
+              >
+                {isLiked ? '♥' : '♡'}
+              </button>
+              <span className="listening-text">{isPaused ? 'Paused' : 'Now Playing'}</span>
+              <div className="seek-row">
+                <span className="time-display">{formatTime(currentPosition)}</span>
+                <input
+                  type="range"
+                  min="0"
+                  max={duration || 100}
+                  value={currentPosition}
+                  onChange={handleSeek}
+                  className="seek-slider"
+                  disabled={!playerReady}
+                />
+                <span className="time-display">{formatTime(duration)}</span>
+              </div>
+              <div className="volume-row">
+                <span className="volume-icon">🔊</span>
+                <input
+                  type="range"
+                  min="0"
+                  max="1"
+                  step="0.01"
+                  value={volume}
+                  onChange={handleVolumeChange}
+                  className="volume-slider"
+                  title="Volume"
+                  disabled={!playerReady}
+                />
+              </div>
+            </div>
+
+            <div className="draggable-area">
+              <DraggableSong
+                track={currentTrack}
+                isPlaying={!isPaused}
+                canDrag={canReRank}
+                isRanked={currentTrackRanked}
+              />
+              {!currentTrackRanked && (
+                <p className="drag-hint">Drag to rank</p>
+              )}
+              {currentTrackRanked && !isCurrentTrackLocked && (
+                <p className="drag-hint">Click slot to unrank</p>
+              )}
+            </div>
+
+            <button
+              className="next-track-button"
+              onClick={handleNextTrack}
+              disabled={state.currentTrackIndex >= state.tracks.length - 1 ? !allRanked : !currentTrackRanked}
+            >
+              {state.currentTrackIndex >= state.tracks.length - 1 ? (allRanked ? 'See Results' : 'Rank All') : 'Next Song'}
+            </button>
+          </div>
         </div>
       </div>
-    </div>
+    </DndContext>
   );
 };

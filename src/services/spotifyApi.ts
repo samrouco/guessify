@@ -75,7 +75,7 @@ export const getAlbumTracks = async (albumId: string): Promise<Track[]> => {
   );
   if (!response.ok) throw new Error('Failed to get album tracks');
   const data = await response.json();
-  return data.items.filter((track: Track) => track.preview_url);
+  return data.items;
 };
 
 const shuffleArray = <T,>(array: T[]): T[] => {

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { BrowserRouter, Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import { GameProvider, useGame } from './context/GameContext';
 import { TierListProvider, useTierList } from './context/TierListContext';
 import {
@@ -8,19 +9,16 @@ import {
 import { TopBar } from './components';
 import { getTokenFromUrl, clearTokenFromUrl, isAuthenticated, exchangeCodeForToken } from './services/auth';
 import { initializePlayer } from './services/spotifyPlayer';
-import { SearchType, SearchResult } from './types';
+import { ROUTES } from './routes';
+import { SearchType } from './types';
 import './App.css';
 
-type GuessPage = 'landing' | 'selection' | 'search' | 'game' | 'results';
-type TierListPage = 'tierlist-selection' | 'tierlist-search' | 'tierlist-game' | 'tierlist-results';
-type Page = GuessPage | TierListPage;
-
 const AppContent: React.FC = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
   const { state, startGame, reset } = useGame();
   const { startTierList } = useTierList();
-  const [page, setPage] = useState<Page>('landing');
   const [tierlistSearchType, setTierlistSearchType] = useState<SearchType>('artist');
-  const [pendingItem, setPendingItem] = useState<SearchResult | null>(null);
   const [, setIsPlayerReady] = useState(false);
 
   useEffect(() => {
@@ -46,113 +44,142 @@ const AppContent: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    if (pendingItem && state.status === 'playing') {
-      setPage('game');
-      setPendingItem(null);
+    if (state.status === 'playing' && location.pathname === ROUTES.SEARCH) {
+      navigate(ROUTES.GAME);
     }
-  }, [pendingItem, state.status]);
-
-  const handleSelectType = (type: SearchType) => {
-    setTierlistSearchType(type);
-    setPage('search');
-  };
-
-  const handleSelectGuess = () => {
-    setPage('selection');
-  };
-
-  const handleSelectTierList = () => {
-    setPage('tierlist-selection');
-  };
-
-  const handleSelectItem = (item: SearchResult) => {
-    startGame(item, tierlistSearchType);
-    setPendingItem(item);
-  };
-
-  const handleFinishGame = () => {
-    setPage('results');
-  };
-
-  const handlePlayAgain = () => {
-    reset();
-    setPage('landing');
-  };
-
-  const handleBackToSelection = () => {
-    reset();
-    setPage('landing');
-  };
+  }, [state.status, location.pathname, navigate]);
 
   const handleLogoClick = () => {
     reset();
-    setPage('landing');
-  };
-
-  const handleTierlistSelectType = (type: SearchType) => {
-    setTierlistSearchType(type);
-    setPage('tierlist-search');
-  };
-
-  const handleTierlistBackToSelection = () => {
-    setPage('tierlist-selection');
-  };
-
-  const handleTierlistSelectItem = async (item: SearchResult) => {
-    await startTierList(item, tierlistSearchType);
-    setPage('tierlist-game');
+    navigate(ROUTES.LANDING);
   };
 
   if (!isAuthenticated()) {
-    return <SearchPage onSelectItem={handleSelectItem} searchType={tierlistSearchType} />;
+    return <SearchPage onSelectItem={() => {}} searchType={tierlistSearchType} />;
   }
 
-  if (page === 'landing') {
-    return <><TopBar onLogoClick={handleLogoClick} /><LandingPage onSelectGuess={handleSelectGuess} onSelectTierList={handleSelectTierList} /></>;
-  }
-
-  if (page === 'selection') {
-    return <><TopBar onLogoClick={handleLogoClick} /><SelectionPage onSelectType={handleSelectType} /></>;
-  }
-
-  if (page === 'search') {
-    return <><TopBar onLogoClick={handleLogoClick} /><SearchPage onSelectItem={handleSelectItem} searchType={tierlistSearchType} mode="guess" /></>;
-  }
-
-  if (page === 'game' || pendingItem) {
-    return <><TopBar onLogoClick={handleLogoClick} /><GamePage onFinish={handleFinishGame} onBackToSelection={handleBackToSelection} /></>;
-  }
-
-  if (page === 'results') {
-    return <><TopBar onLogoClick={handleLogoClick} /><ResultsPage onPlayAgain={handlePlayAgain} /></>;
-  }
-
-  if (page === 'tierlist-selection') {
-    return <><TopBar onLogoClick={handleLogoClick} /><TierListSelectionPage onSelectType={handleTierlistSelectType} onBack={handleBackToSelection} /></>;
-  }
-
-  if (page === 'tierlist-search') {
-    return <><TopBar onLogoClick={handleLogoClick} /><TierListSearchPage searchType={tierlistSearchType} onSelectItem={handleTierlistSelectItem} onBack={handleTierlistBackToSelection} /></>;
-  }
-
-  if (page === 'tierlist-game') {
-    return <><TopBar onLogoClick={handleLogoClick} /><TierListGamePage onFinish={() => setPage('tierlist-results')} onBackToSelection={handleTierlistBackToSelection} /></>;
-  }
-
-  if (page === 'tierlist-results') {
-    return <><TopBar onLogoClick={handleLogoClick} /><TierListResultsPage onPlayAgain={handlePlayAgain} onBack={() => setPage('tierlist-selection')} /></>;
-  }
-
-  return <><TopBar onLogoClick={handleLogoClick} /><SearchPage onSelectItem={handleSelectItem} searchType={tierlistSearchType} /></>;
+  return (
+    <div className="app">
+      <TopBar onLogoClick={handleLogoClick} />
+      <main className="app-main">
+        <Routes>
+          <Route
+            path={ROUTES.LANDING}
+            element={
+              <LandingPage
+                onSelectGuess={() => navigate(ROUTES.SELECTION)}
+                onSelectTierList={() => navigate(ROUTES.TIERLIST_SELECTION)}
+              />
+            }
+          />
+          <Route
+            path={ROUTES.SELECTION}
+            element={
+              <SelectionPage
+                onSelectType={(type) => {
+                  setTierlistSearchType(type);
+                  navigate(ROUTES.SEARCH);
+                }}
+              />
+            }
+          />
+          <Route
+            path={ROUTES.SEARCH}
+            element={
+              <SearchPage
+                onSelectItem={(item) => {
+                  startGame(item, tierlistSearchType);
+                  navigate(ROUTES.GAME);
+                }}
+                searchType={tierlistSearchType}
+                mode="guess"
+              />
+            }
+          />
+          <Route
+            path={ROUTES.GAME}
+            element={
+              <GamePage
+                onFinish={() => navigate(ROUTES.RESULTS)}
+                onBackToSelection={() => {
+                  reset();
+                  navigate(ROUTES.SELECTION);
+                }}
+              />
+            }
+          />
+          <Route
+            path={ROUTES.RESULTS}
+            element={
+              <ResultsPage
+                onPlayAgain={() => {
+                  reset();
+                  navigate(ROUTES.LANDING);
+                }}
+              />
+            }
+          />
+          <Route
+            path={ROUTES.TIERLIST_SELECTION}
+            element={
+              <TierListSelectionPage
+                onSelectType={(type) => {
+                  setTierlistSearchType(type);
+                  navigate(ROUTES.TIERLIST_SEARCH);
+                }}
+                onBack={() => navigate(ROUTES.LANDING)}
+              />
+            }
+          />
+          <Route
+            path={ROUTES.TIERLIST_SEARCH}
+            element={
+              <TierListSearchPage
+                searchType={tierlistSearchType}
+                onSelectItem={async (item) => {
+                  await startTierList(item, tierlistSearchType);
+                  navigate(ROUTES.TIERLIST_GAME);
+                }}
+                onBack={() => navigate(ROUTES.TIERLIST_SELECTION)}
+              />
+            }
+          />
+          <Route
+            path={ROUTES.TIERLIST_GAME}
+            element={
+              <TierListGamePage
+                onFinish={() => navigate(ROUTES.TIERLIST_RESULTS)}
+                onBackToSelection={() => navigate(ROUTES.TIERLIST_SELECTION)}
+              />
+            }
+          />
+          <Route
+            path={ROUTES.TIERLIST_RESULTS}
+            element={
+              <TierListResultsPage
+                onPlayAgain={() => {
+                  reset();
+                  navigate(ROUTES.LANDING);
+                }}
+                onBack={() => navigate(ROUTES.TIERLIST_SELECTION)}
+              />
+            }
+          />
+        </Routes>
+      </main>
+    </div>
+  );
 };
 
 const App: React.FC = () => {
   return (
-    <GameProvider>
-      <TierListProvider>
-        <AppContent />
-      </TierListProvider>
-    </GameProvider>
+    <BrowserRouter>
+      <GameProvider>
+        <TierListProvider>
+          <AppContent />
+        </TierListProvider>
+      </GameProvider>
+    </BrowserRouter>
   );
 };
 

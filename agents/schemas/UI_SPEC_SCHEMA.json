@@ -1,0 +1,49 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "UISpecification",
+  "type": "object",
+  "properties": {
+    "screen_name": {
+      "type": "string",
+      "description": "Nombre identificativo de la vista o pantalla del juego."
+    },
+    "layout_structure": {
+      "type": "string",
+      "description": "Descripción detallada del layout principal usando CSS Grid o Flexbox."
+    },
+    "components": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "pattern": "^[A-Z][a-zA-Z0-9]*$",
+            "description": "Nombre del componente en PascalCase (estilo React)."
+          },
+          "props": {
+            "type": "object",
+            "additionalProperties": { "type": "string" },
+            "description": "Propiedades que recibe el componente con su tipo en TypeScript 6."
+          },
+          "state": {
+            "type": "object",
+            "additionalProperties": { "type": "string" },
+            "description": "Estado interno del componente si lo requiere (ej: isOpen: boolean)."
+          },
+          "css_modules_needed": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "Lista de clases CSS que el módulo del componente debe implementar."
+          },
+          "ux_behavior": {
+            "type": "string",
+            "description": "Explicación del comportamiento interactivo del componente y qué eventos dispara."
+          }
+        },
+        "required": ["name", "props", "state", "css_modules_needed", "ux_behavior"]
+      }
+    }
+  },
+  "required": ["screen_name", "layout_structure", "components"]
+}

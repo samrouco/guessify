@@ -86,3 +86,32 @@
   font-weight: 600;
   color: var(--text-primary);
 }
+
+@media (max-width: 480px) {
+  .selection-title {
+    font-size: 36px;
+  }
+
+  .selection-subtitle {
+    font-size: 16px;
+    margin-bottom: 32px;
+  }
+
+  .selection-cards {
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .selection-card {
+    width: 160px;
+    height: 160px;
+  }
+
+  .card-icon {
+    font-size: 48px;
+  }
+
+  .card-label {
+    font-size: 16px;
+  }
+}
