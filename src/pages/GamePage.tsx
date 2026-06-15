@@ -1,10 +1,12 @@
 import React, { useEffect, useState, useCallback, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useGame } from '../context/GameContext';
 import { SongOption, ScoreDisplay, getListenTime, getRandomStart } from '../components';
-import { playTrack, getPlayer, getDeviceId, pauseTrack as pauseTrackPlayer, resumeTrack as resumeTrackPlayer, setVolume } from '../services/spotifyPlayer';
+import { playTrack, getPlayer, getDeviceId, pauseTrack as pauseTrackPlayer, resumeTrack as resumeTrackPlayer } from '../services/spotifyPlayer';
 import { setTrackLiked } from '../services/spotifyApi';
 import { Artist, Playlist, Album } from '../types';
 import './GamePage.css';
+import { ROUTES } from '../routes';
 
 interface GamePageProps {
   onFinish: () => void;
@@ -12,17 +14,29 @@ interface GamePageProps {
 }
 
 export const GamePage: React.FC<GamePageProps> = ({ onFinish, onBackToSelection }) => {
+  const navigate = useNavigate();
   const { state, currentRound, selectAnswer, nextRound, recordTiming } = useGame();
   const [isPaused, setIsPaused] = useState(false);
   const [playerReady, setPlayerReady] = useState(false);
-  const [playerInitialized, setPlayerInitialized] = useState(false);
-  const [volume, setVolumeState] = useState(0.5);
   const [isLiked, setIsLiked] = useState(false);
   const [autoPausedByTimeLimit, setAutoPausedByTimeLimit] = useState(false);
   const accumulatedListenTimeRef = useRef(0);
+  const lastPlayStartRef = useRef<number | null>(null);
   const hasPlayedRef = useRef(false);
   const pauseTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const totalTimeSinceStartRef = useRef<number>(0);
+
+  const commitElapsed = () => {
+    if (lastPlayStartRef.current !== null) {
+      accumulatedListenTimeRef.current += Date.now() - lastPlayStartRef.current;
+      lastPlayStartRef.current = null;
+    }
+  };
+
+  useEffect(() => {
+    if (!state.selectedItem) {
+      navigate(ROUTES.LANDING);
+    }
+  }, [state.selectedItem, navigate]);
 
   useEffect(() => {
     const checkPlayer = () => {
@@ -30,7 +44,6 @@ export const GamePage: React.FC<GamePageProps> = ({ onFinish, onBackToSelection 
       const d = getDeviceId();
       if (p && d) {
         setPlayerReady(true);
-        setPlayerInitialized(true);
       }
     };
     checkPlayer();
@@ -43,7 +56,7 @@ export const GamePage: React.FC<GamePageProps> = ({ onFinish, onBackToSelection 
     setIsLiked(false);
     setAutoPausedByTimeLimit(false);
     accumulatedListenTimeRef.current = 0;
-    totalTimeSinceStartRef.current = Date.now();
+    lastPlayStartRef.current = null;
     if (pauseTimeoutRef.current) {
       clearTimeout(pauseTimeoutRef.current);
       pauseTimeoutRef.current = null;
@@ -64,6 +77,7 @@ export const GamePage: React.FC<GamePageProps> = ({ onFinish, onBackToSelection 
       setIsPaused(false);
       setAutoPausedByTimeLimit(false);
       accumulatedListenTimeRef.current = 0;
+      lastPlayStartRef.current = null;
 
       const randomStart = getRandomStart();
       const listenTime = getListenTime();
@@ -80,13 +94,14 @@ export const GamePage: React.FC<GamePageProps> = ({ onFinish, onBackToSelection 
 
       try {
         await playTrack(`spotify:track:${currentRound.correctTrack.id}`, startPositionMs);
+        lastPlayStartRef.current = Date.now();
       } catch (err) {
         console.error('Error playing track:', err);
       }
 
       if (listenTime !== 'infinite') {
         pauseTimeoutRef.current = setTimeout(() => {
-          accumulatedListenTimeRef.current += listenTime;
+          commitElapsed();
           pauseTrackPlayer();
           setAutoPausedByTimeLimit(true);
         }, listenTime * 1000);
@@ -109,10 +124,8 @@ export const GamePage: React.FC<GamePageProps> = ({ onFinish, onBackToSelection 
 
   const handleSelectAnswer = async (trackId: string) => {
     if (currentRound?.selectedTrackId !== null) return;
-    const totalTimeMs = totalTimeSinceStartRef.current > 0
-      ? Date.now() - totalTimeSinceStartRef.current
-      : 0;
-    recordTiming(state.currentRoundIndex, totalTimeMs, accumulatedListenTimeRef.current);
+    commitElapsed();
+    recordTiming(state.currentRoundIndex, accumulatedListenTimeRef.current);
     selectAnswer(trackId);
   };
 
@@ -133,6 +146,7 @@ const togglePause = useCallback(async () => {
       if (isPaused) {
         if (autoPausedByTimeLimit) {
           await playTrack(`spotify:track:${currentRound!.correctTrack.id}`);
+          lastPlayStartRef.current = Date.now();
           setAutoPausedByTimeLimit(false);
           const listenTime = getListenTime();
 
@@ -141,7 +155,7 @@ const togglePause = useCallback(async () => {
               clearTimeout(pauseTimeoutRef.current);
             }
             pauseTimeoutRef.current = setTimeout(() => {
-              accumulatedListenTimeRef.current += listenTime;
+              commitElapsed();
               pauseTrackPlayer();
               setAutoPausedByTimeLimit(true);
             }, listenTime * 1000);
@@ -150,9 +164,11 @@ const togglePause = useCallback(async () => {
           setIsPaused(false);
         } else {
           await resumeTrackPlayer();
+          lastPlayStartRef.current = Date.now();
           setIsPaused(false);
         }
       } else {
+        commitElapsed();
         await pauseTrackPlayer();
         setIsPaused(true);
       }
@@ -160,13 +176,6 @@ const togglePause = useCallback(async () => {
       console.error('Pause toggle error:', err);
     }
   }, [isPaused, autoPausedByTimeLimit, currentRound]);
-
-  const handleVolumeChange = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!playerInitialized) return;
-    const newVolume = parseFloat(e.target.value);
-    setVolumeState(newVolume);
-    await setVolume(newVolume);
-  }, [playerInitialized]);
 
   const handleLike = useCallback(async () => {
     if (!currentRound) return;
@@ -184,15 +193,17 @@ const togglePause = useCallback(async () => {
 
     try {
       await resumeTrackPlayer();
-
+      lastPlayStartRef.current = Date.now();
       setAutoPausedByTimeLimit(false);
-      const newAccumulated = accumulatedListenTimeRef.current + listenTime;
-      accumulatedListenTimeRef.current = newAccumulated;
 
+      if (pauseTimeoutRef.current) {
+        clearTimeout(pauseTimeoutRef.current);
+      }
       pauseTimeoutRef.current = setTimeout(() => {
+        commitElapsed();
         pauseTrackPlayer();
         setAutoPausedByTimeLimit(true);
-      }, newAccumulated * 1000);
+      }, listenTime * 1000);
 
       setIsPaused(false);
     } catch (err) {
@@ -261,51 +272,6 @@ const togglePause = useCallback(async () => {
         currentRound={state.currentRoundIndex + 1}
       />
 
-      <div className="now-playing">
-        <button
-          className="pause-button"
-          onClick={togglePause}
-          disabled={!playerReady || hasAnswered}
-        >
-          {autoPausedByTimeLimit ? '⏮' : isPaused ? '▶' : '⏸'}
-        </button>
-        {!isPaused && <div className="pulse-animation">
-          <div className="pulse-ring" />
-          <div className="pulse-ring" />
-          <div className="pulse-center" />
-        </div>}
-        <span className="listening-text">{isPaused ? 'Paused' : 'Listening...'}</span>
-        {autoPausedByTimeLimit && (
-          <button
-            className={`extend-button ${!playerReady || hasAnswered ? 'disabled' : ''}`}
-            onClick={handleExtendListen}
-            disabled={!playerReady || hasAnswered}
-            title="Listen more"
-          >
-            +{getListenTime()}s
-          </button>
-        )}
-        <input
-          type="range"
-          min="0"
-          max="1"
-          step="0.01"
-          value={volume}
-          onChange={handleVolumeChange}
-          className="volume-slider"
-          title="Volume"
-          disabled={!playerReady}
-        />
-        <button
-          className={`like-button ${isLiked ? 'liked' : ''}`}
-          onClick={handleLike}
-          disabled={!playerReady || hasAnswered || isLiked}
-          title="Add to Liked Songs"
-        >
-          {isLiked ? '♥' : '♡'}
-        </button>
-      </div>
-
       <div className="options-container">
         {currentRound.options.map((track) => (
           <SongOption
@@ -319,18 +285,49 @@ const togglePause = useCallback(async () => {
         ))}
       </div>
 
-      {hasAnswered && (
-        <div className="round-result">
-          {isCorrect ? (
-            <span className="result-correct">+1</span>
-          ) : (
-            <span className="result-wrong">Wrong</span>
+      <div className="controls-section">
+        <div className="now-playing">
+          <button
+            className="pause-button"
+            onClick={togglePause}
+            disabled={!playerReady || hasAnswered}
+          >
+            {autoPausedByTimeLimit ? '⏮' : isPaused ? '▶' : '⏸'}
+          </button>
+          <span className="listening-text">{isPaused ? 'Paused' : 'Listening...'}</span>
+          {autoPausedByTimeLimit && (
+            <button
+              className={`extend-button ${!playerReady || hasAnswered ? 'disabled' : ''}`}
+              onClick={handleExtendListen}
+              disabled={!playerReady || hasAnswered}
+              title="Listen more"
+            >
+              +{getListenTime()}s
+            </button>
           )}
-          <button className="next-button" onClick={handleNextRound}>
-            {state.currentRoundIndex + 1 >= state.rounds.length ? 'Results' : 'Next'}
+          <button
+            className={`like-button ${isLiked ? 'liked' : ''}`}
+            onClick={handleLike}
+            disabled={!playerReady || hasAnswered || isLiked}
+            title="Add to Liked Songs"
+          >
+            {isLiked ? '♥' : '♡'}
           </button>
         </div>
-      )}
+
+        {hasAnswered && (
+          <div className="round-result">
+            {isCorrect ? (
+              <span className="result-correct">+1</span>
+            ) : (
+              <span className="result-wrong">Wrong</span>
+            )}
+            <button className="next-button" onClick={handleNextRound}>
+              {state.currentRoundIndex + 1 >= state.rounds.length ? 'Results' : 'Next'}
+            </button>
+          </div>
+        )}
+      </div>
     </div>
   );
 };

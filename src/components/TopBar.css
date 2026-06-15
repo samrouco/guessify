@@ -1,0 +1,96 @@
+.topbar {
+  height: 50px;
+  background: #282828;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
+  border-bottom: 2px solid #1DB954;
+  box-shadow: 0 2px 20px rgba(29, 185, 84, 0.2);
+}
+
+.topbar-logo {
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: #1DB954;
+  text-shadow: 0 0 10px rgba(29, 185, 84, 0.5), 0 0 20px rgba(29, 185, 84, 0.3);
+  letter-spacing: 2px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+}
+
+.topbar-logo svg {
+  width: 24px;
+  height: 24px;
+}
+
+.topbar-user {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.user-placeholder {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #fff;
+  font-weight: 600;
+}
+
+.user-icon {
+  font-size: 1.2rem;
+}
+
+.logout-btn {
+  background: transparent;
+  border: 1px solid #FF6B6B;
+  color: #FF6B6B;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  font-size: 1rem;
+}
+
+.logout-btn:hover {
+  background: #FF6B6B;
+  color: #fff;
+  transform: scale(1.05);
+}
+
+@media (max-width: 480px) {
+  .topbar {
+    height: 44px;
+    padding: 0 12px;
+  }
+
+  .topbar-logo {
+    font-size: 1rem;
+    letter-spacing: 1px;
+  }
+
+  .topbar-logo svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  .logout-btn {
+    width: 32px;
+    height: 32px;
+    font-size: 0.85rem;
+  }
+
+  .user-name {
+    display: none;
+  }
+}

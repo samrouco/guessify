@@ -2,3 +2,8 @@ export { SearchPage } from './SearchPage';
 export { GamePage } from './GamePage';
 export { ResultsPage } from './ResultsPage';
 export { SelectionPage } from './SelectionPage';
+export { LandingPage } from './LandingPage';
+export { TierListSelectionPage } from './TierListSelectionPage';
+export { TierListSearchPage } from './TierListSearchPage';
+export { TierListGamePage } from './TierListGamePage';
+export { TierListResultsPage } from './TierListResultsPage';

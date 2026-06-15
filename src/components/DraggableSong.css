@@ -1,0 +1,83 @@
+.draggable-song {
+  padding: 16px 20px;
+  background: linear-gradient(135deg, #1DB954 0%, #1aa34a 100%);
+  border-radius: 12px;
+  cursor: grab;
+  user-select: none;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 15px rgba(29, 185, 84, 0.3);
+  touch-action: none;
+}
+
+.draggable-song.dragging {
+  opacity: 0.5;
+  cursor: grabbing;
+}
+
+.draggable-song:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(29, 185, 84, 0.4);
+}
+
+.draggable-song:active {
+  cursor: grabbing;
+  transform: scale(1.02);
+}
+
+.draggable-song.playing {
+  animation: pulse-glow 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 0 4px 15px rgba(29, 185, 84, 0.3);
+  }
+  50% {
+    box-shadow: 0 4px 25px rgba(29, 185, 84, 0.6), 0 0 30px rgba(29, 185, 84, 0.3);
+  }
+}
+
+.song-content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.song-icon {
+  font-size: 1.5rem;
+}
+
+.song-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  overflow: hidden;
+  min-width: 0;
+}
+
+.song-name {
+  font-weight: 700;
+  font-size: 1rem;
+  color: #fff;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  line-height: 1.3;
+}
+
+.song-artist {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.8);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  line-height: 1.3;
+}
+
+.song-drag-hint {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.6);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}

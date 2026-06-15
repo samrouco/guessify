@@ -36,7 +36,6 @@ const generateRounds = (tracks: Track[], numRounds: number): GameRound[] => {
       options,
       selectedTrackId: null,
       isCorrect: null,
-      totalTimeMs: 0,
       listenTimeMs: 0,
     });
   }
@@ -93,7 +92,6 @@ const gameReducer = (state: GameState, action: GameAction): GameState => {
         idx === action.payload.roundIndex
           ? {
               ...round,
-              totalTimeMs: action.payload.totalTimeMs,
               listenTimeMs: action.payload.listenTimeMs,
             }
           : round
@@ -111,7 +109,7 @@ interface GameContextType {
   selectAnswer: (trackId: string) => void;
   nextRound: () => void;
   reset: () => void;
-  recordTiming: (roundIndex: number, totalTimeMs: number, listenTimeMs: number) => void;
+  recordTiming: (roundIndex: number, listenTimeMs: number) => void;
   currentRound: GameRound | null;
 }
 
@@ -148,8 +146,8 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     dispatch({ type: 'RESET' });
   };
 
-  const recordTiming = (roundIndex: number, totalTimeMs: number, listenTimeMs: number) => {
-    dispatch({ type: 'RECORD_TIMING', payload: { roundIndex, totalTimeMs, listenTimeMs } });
+  const recordTiming = (roundIndex: number, listenTimeMs: number) => {
+    dispatch({ type: 'RECORD_TIMING', payload: { roundIndex, listenTimeMs } });
   };
 
   const currentRound = state.rounds[state.currentRoundIndex] || null;

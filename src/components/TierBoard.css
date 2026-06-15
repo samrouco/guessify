@@ -1,0 +1,113 @@
+.tier-board {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px;
+  background: #1a1a1a;
+  border-radius: 16px;
+  border: 2px solid #333;
+  width: 100%;
+  max-width: 600px;
+  overflow-x: hidden;
+}
+
+.tier-slot {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  background: #282828;
+  border-radius: 10px;
+  border: 2px dashed #444;
+  min-height: 50px;
+  transition: all 0.2s ease;
+  overflow: hidden;
+}
+
+.tier-slot.drag-over {
+  border-color: #1DB954;
+  background: rgba(29, 185, 84, 0.1);
+}
+
+.tier-slot.locked {
+  opacity: 0.5;
+  cursor: default;
+  border-style: solid;
+  border-color: #555;
+}
+
+.tier-rank {
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: #1DB954;
+  min-width: 24px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.tier-rank-label {
+  font-size: 0.8rem;
+  color: #888;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.slot-content {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.slot-empty {
+  color: #666;
+  font-style: italic;
+}
+
+.slot-track {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+}
+
+.slot-track-name {
+  font-weight: 600;
+  color: #fff;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.slot-track-artist {
+  font-size: 0.85rem;
+  color: #aaa;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.locked-indicator {
+  color: #888;
+  font-size: 0.8rem;
+  margin-left: auto;
+}
+
+@media (max-width: 768px) {
+  .tier-board {
+    max-width: 100%;
+    padding: 10px;
+    gap: 6px;
+  }
+
+  .tier-slot {
+    padding: 8px 10px;
+    min-height: 44px;
+  }
+
+  .tier-rank-label {
+    display: none;
+  }
+}

@@ -1,0 +1,21 @@
+.tierlist-search-page {
+  min-height: 100vh;
+  padding: 20px;
+}
+
+.back-to-selection {
+  background: transparent;
+  border: none;
+  color: #888;
+  font-size: 14px;
+  cursor: pointer;
+  margin-bottom: 16px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.back-to-selection:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.1);
+}

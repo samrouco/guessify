@@ -38,7 +38,6 @@ export interface GameRound {
   options: Track[];
   selectedTrackId: string | null;
   isCorrect: boolean | null;
-  totalTimeMs: number;
   listenTimeMs: number;
 }
 
@@ -60,4 +59,4 @@ export type GameAction =
   | { type: 'FINISH_GAME' }
   | { type: 'SET_ERROR'; payload: string }
   | { type: 'RESET' }
-  | { type: 'RECORD_TIMING'; payload: { roundIndex: number; totalTimeMs: number; listenTimeMs: number } };
+  | { type: 'RECORD_TIMING'; payload: { roundIndex: number; listenTimeMs: number } };

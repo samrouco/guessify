@@ -100,3 +100,30 @@
   transform: scale(1.05);
   box-shadow: 0 0 40px rgba(29, 185, 84, 0.6);
 }
+
+@media (max-width: 480px) {
+  .search-page {
+    padding: 16px 12px;
+  }
+
+  .title {
+    font-size: 40px;
+  }
+
+  .subtitle {
+    font-size: 14px;
+  }
+
+  .auth-required h2 {
+    font-size: 28px;
+  }
+
+  .auth-required p {
+    font-size: 14px;
+  }
+
+  .spotify-button {
+    padding: 14px 24px;
+    font-size: 14px;
+  }
+}
