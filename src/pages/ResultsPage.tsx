@@ -1,7 +1,6 @@
 import React from 'react';
 import { useGame } from '../context/GameContext';
 import { Artist, Playlist, Album, Track } from '../types';
-import { getListenTime } from '../components';
 import './ResultsPage.css';
 
 interface ResultsPageProps {
@@ -59,12 +58,6 @@ export const ResultsPage: React.FC<ResultsPageProps> = ({ onPlayAgain }) => {
     return track.artists.map((a) => a.name).join(', ');
   };
 
-  const formatMaxListenTime = (trackDurationMs: number) => {
-    const listenTime = getListenTime();
-    if (listenTime === 'infinite') return formatTime(trackDurationMs);
-    return `${listenTime}s`;
-  };
-
   return (
     <div className="results-page">
       <div className="results-header">
@@ -110,8 +103,7 @@ export const ResultsPage: React.FC<ResultsPageProps> = ({ onPlayAgain }) => {
                   )}
                 </div>
                 <div className="recap-timing">
-                  <span className="recap-time-total">{formatTime(round.totalTimeMs)}</span>
-                  <span className="recap-time-listen">{formatTime(round.listenTimeMs)} / {formatMaxListenTime(round.correctTrack.duration_ms)}</span>
+                  <span className="recap-time-listen">{formatTime(round.listenTimeMs)} / {formatTime(round.correctTrack.duration_ms)}</span>
                 </div>
               </div>
             );

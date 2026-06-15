@@ -21,9 +21,16 @@ export const GamePage: React.FC<GamePageProps> = ({ onFinish, onBackToSelection 
   const [isLiked, setIsLiked] = useState(false);
   const [autoPausedByTimeLimit, setAutoPausedByTimeLimit] = useState(false);
   const accumulatedListenTimeRef = useRef(0);
+  const lastPlayStartRef = useRef<number | null>(null);
   const hasPlayedRef = useRef(false);
   const pauseTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const totalTimeSinceStartRef = useRef<number>(0);
+
+  const commitElapsed = () => {
+    if (lastPlayStartRef.current !== null) {
+      accumulatedListenTimeRef.current += Date.now() - lastPlayStartRef.current;
+      lastPlayStartRef.current = null;
+    }
+  };
 
   useEffect(() => {
     if (!state.selectedItem) {
@@ -49,7 +56,7 @@ export const GamePage: React.FC<GamePageProps> = ({ onFinish, onBackToSelection 
     setIsLiked(false);
     setAutoPausedByTimeLimit(false);
     accumulatedListenTimeRef.current = 0;
-    totalTimeSinceStartRef.current = Date.now();
+    lastPlayStartRef.current = null;
     if (pauseTimeoutRef.current) {
       clearTimeout(pauseTimeoutRef.current);
       pauseTimeoutRef.current = null;
@@ -70,6 +77,7 @@ export const GamePage: React.FC<GamePageProps> = ({ onFinish, onBackToSelection 
       setIsPaused(false);
       setAutoPausedByTimeLimit(false);
       accumulatedListenTimeRef.current = 0;
+      lastPlayStartRef.current = null;
 
       const randomStart = getRandomStart();
       const listenTime = getListenTime();
@@ -86,13 +94,14 @@ export const GamePage: React.FC<GamePageProps> = ({ onFinish, onBackToSelection 
 
       try {
         await playTrack(`spotify:track:${currentRound.correctTrack.id}`, startPositionMs);
+        lastPlayStartRef.current = Date.now();
       } catch (err) {
         console.error('Error playing track:', err);
       }
 
       if (listenTime !== 'infinite') {
         pauseTimeoutRef.current = setTimeout(() => {
-          accumulatedListenTimeRef.current += listenTime;
+          commitElapsed();
           pauseTrackPlayer();
           setAutoPausedByTimeLimit(true);
         }, listenTime * 1000);
@@ -115,10 +124,8 @@ export const GamePage: React.FC<GamePageProps> = ({ onFinish, onBackToSelection 
 
   const handleSelectAnswer = async (trackId: string) => {
     if (currentRound?.selectedTrackId !== null) return;
-    const totalTimeMs = totalTimeSinceStartRef.current > 0
-      ? Date.now() - totalTimeSinceStartRef.current
-      : 0;
-    recordTiming(state.currentRoundIndex, totalTimeMs, accumulatedListenTimeRef.current);
+    commitElapsed();
+    recordTiming(state.currentRoundIndex, accumulatedListenTimeRef.current);
     selectAnswer(trackId);
   };
 
@@ -139,6 +146,7 @@ const togglePause = useCallback(async () => {
       if (isPaused) {
         if (autoPausedByTimeLimit) {
           await playTrack(`spotify:track:${currentRound!.correctTrack.id}`);
+          lastPlayStartRef.current = Date.now();
           setAutoPausedByTimeLimit(false);
           const listenTime = getListenTime();
 
@@ -147,7 +155,7 @@ const togglePause = useCallback(async () => {
               clearTimeout(pauseTimeoutRef.current);
             }
             pauseTimeoutRef.current = setTimeout(() => {
-              accumulatedListenTimeRef.current += listenTime;
+              commitElapsed();
               pauseTrackPlayer();
               setAutoPausedByTimeLimit(true);
             }, listenTime * 1000);
@@ -156,9 +164,11 @@ const togglePause = useCallback(async () => {
           setIsPaused(false);
         } else {
           await resumeTrackPlayer();
+          lastPlayStartRef.current = Date.now();
           setIsPaused(false);
         }
       } else {
+        commitElapsed();
         await pauseTrackPlayer();
         setIsPaused(true);
       }
@@ -183,15 +193,17 @@ const togglePause = useCallback(async () => {
 
     try {
       await resumeTrackPlayer();
-
+      lastPlayStartRef.current = Date.now();
       setAutoPausedByTimeLimit(false);
-      const newAccumulated = accumulatedListenTimeRef.current + listenTime;
-      accumulatedListenTimeRef.current = newAccumulated;
 
+      if (pauseTimeoutRef.current) {
+        clearTimeout(pauseTimeoutRef.current);
+      }
       pauseTimeoutRef.current = setTimeout(() => {
+        commitElapsed();
         pauseTrackPlayer();
         setAutoPausedByTimeLimit(true);
-      }, newAccumulated * 1000);
+      }, listenTime * 1000);
 
       setIsPaused(false);
     } catch (err) {

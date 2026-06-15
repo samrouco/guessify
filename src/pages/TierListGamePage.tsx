@@ -243,8 +243,10 @@ export const TierListGamePage: React.FC<TierListGamePageProps> = ({ onFinish, on
           <button className="back-button" onClick={handleBackToSelection} title="Back to selection">
             ←
           </button>
-          <img src={getItemImage()} alt={getItemName()} className="artist-avatar" />
-          <h2 className="artist-title">{getItemName()}</h2>
+          <div className="artist-info">
+            <img src={getItemImage()} alt={getItemName()} className="artist-avatar" />
+            <h2 className="artist-title">{getItemName()}</h2>
+          </div>
           <div className="tierlist-progress">
             <span className="progress-text">{rankedCount}/5</span>
           </div>
